@@ -1,31 +1,30 @@
 import 'package:flutter/material.dart';
 import '../models/categoria.dart';
 import '../services/categorias_service.dart';
+import '../widgets/menu.dart'; 
 
-// Listas de colores e íconos sugeridos
 final List<Color> coloresDisponibles = [
   Colors.blue, Colors.red, Colors.green, Colors.orange, Colors.purple, Colors.teal, Colors.pink, Colors.brown, Colors.yellow, Colors.grey
 ];
 
 final List<IconData> iconosDisponibles = [
-  Icons.category, Icons.star, Icons.work, Icons.home, Icons.school, Icons.favorite, Icons.shopping_cart, Icons.pets
+  Icons.category, Icons.star, Icons.work, Icons.home, Icons.school, Icons.favorite, Icons.shopping_cart, Icons.pets,
+  Icons.sports_soccer, Icons.music_note 
 ];
 
-// Función para parsear color seguro
 Color _parseColor(String colorStr) {
   try {
     return Color(int.parse(colorStr.replaceFirst('#', '0xff')));
   } catch (_) {
-    return Colors.blue; // Color por defecto si hay error
+    return Colors.blue; 
   }
 }
 
-// Función para parsear ícono seguro
 IconData _parseIcon(String iconStr) {
   try {
     return IconData(int.parse(iconStr), fontFamily: 'MaterialIcons');
   } catch (_) {
-    return Icons.category; // Ícono por defecto si hay error
+    return Icons.category; 
   }
 }
 
@@ -140,46 +139,72 @@ class _CategoriasScreenState extends State<CategoriasScreen> {
   }
 
   void _eliminarCategoria(int id) async {
-    final ok = await eliminarCategoria(id);
-    if (!ok) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No se puede eliminar la categoría (puede tener tareas)')),
-      );
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('¿Eliminar categoría?'),
+        content: const Text('¿Estás seguro de que deseas eliminar esta categoría?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Eliminar'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      final ok = await eliminarCategoria(id);
+      if (!ok) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No se puede eliminar la categoría (puede tener tareas)')),
+        );
+      }
+      cargarCategorias();
     }
-    cargarCategorias();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Categorías')),
+      drawer: const Menu(), // Aquí usas tu menú morado
       body: loading
           ? const Center(child: CircularProgressIndicator())
           : ListView.builder(
               itemCount: categorias.length,
               itemBuilder: (ctx, i) {
                 final cat = categorias[i];
-                return ListTile(
-                  leading: CircleAvatar(
-                    backgroundColor: _parseColor(cat.color),
-                    child: Icon(
-                      _parseIcon(cat.icono),
-                      color: Colors.white,
+                return Card(
+                  elevation: 4,
+                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  child: ListTile(
+                    leading: CircleAvatar(
+                      backgroundColor: _parseColor(cat.color),
+                      child: Icon(
+                        _parseIcon(cat.icono),
+                        color: Colors.white,
+                      ),
                     ),
-                  ),
-                  title: Text(cat.nombre),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.edit),
-                        onPressed: () => _mostrarDialogoCategoria(categoria: cat),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.delete),
-                        onPressed: () => _eliminarCategoria(cat.id),
-                      ),
-                    ],
+                    title: Text(cat.nombre),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.edit),
+                          onPressed: () => _mostrarDialogoCategoria(categoria: cat),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.delete),
+                          onPressed: () => _eliminarCategoria(cat.id),
+                        ),
+                      ],
+                    ),
                   ),
                 );
               },

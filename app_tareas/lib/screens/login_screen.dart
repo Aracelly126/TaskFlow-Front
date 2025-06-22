@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
-import 'home_screen.dart';
 import 'register_screen.dart';
+import 'bitacora_screen.dart'; // Importa tu pantalla de bitácora
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -41,7 +41,7 @@ class _LoginScreenState extends State<LoginScreen> {
     if (exito) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (_) => const HomeScreen()),
+        MaterialPageRoute(builder: (_) => const BitacoraScreen()),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(

@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import '../providers/tarea_provider.dart';
 import '../widgets/tarea_item.dart';
 import 'agregar_tarea_screen.dart';
-import 'categorias_screen.dart';
+import '../widgets/menu.dart'; 
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -16,48 +16,16 @@ class HomeScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Mis Tareas'),
       ),
-      drawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: [
-            const DrawerHeader(
-              decoration: BoxDecoration(color: Color.fromARGB(255, 229, 200, 247)),
-              child: Text('Menú', style: TextStyle(color: Colors.white, fontSize: 24)),
-            ),
-            ListTile(
-              leading: Icon(Icons.home),
-              title: Text('Inicio'),
-              onTap: () {
-                Navigator.pop(context);
-              },
-            ),
-            ListTile(
-              leading: Icon(Icons.category),
-              title: Text('Categorías'),
-              onTap: () {
-                Navigator.pop(context); 
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const CategoriasScreen()),
-                );
-              },
-            ),
-            ListTile(
-              leading: Icon(Icons.logout),
-              title: Text('Cerrar sesión'),
-              onTap: () {
-               
-                Navigator.pop(context);
-              },
-            ),
-          ],
-        ),
-      ),
+      drawer: const Menu(), 
       body: tareas.isEmpty
           ? const Center(child: Text('No hay tareas aún.'))
           : ListView.builder(
               itemCount: tareas.length,
-              itemBuilder: (ctx, i) => TareaItem(tarea: tareas[i]),
+              itemBuilder: (ctx, i) => Card(
+                margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                elevation: 4,
+                child: TareaItem(tarea: tareas[i]),
+              ),
             ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {

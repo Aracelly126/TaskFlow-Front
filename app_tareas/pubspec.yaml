@@ -20,7 +20,8 @@ dependencies:
   google_fonts: ^6.1.0
   flutter_native_splash: ^2.3.10
   animations: ^2.0.8
-  flutter_secure_storage: ^9.0.0   # <--- Agrega esta línea
+  flutter_secure_storage: ^9.0.0   
+  lottie: ^3.1.0
 
 dev_dependencies:
   flutter_test:
@@ -29,3 +30,10 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  assets:
+  - animations/happy.gif
+  - animations/sad.gif
+  - animations/angry.gif
+  - animations/love.gif
+
+    

@@ -16,3 +16,45 @@ Future<List<Map<String, dynamic>>> obtenerNotas() async {
   }
   return [];
 }
+
+Future<bool> crearNota(String titulo, String contenido) async {
+  final token = await storage.read(key: 'jwt_token');
+  final response = await http.post(
+    Uri.parse('$baseUrl/bitacora'),
+    headers: {
+      'Authorization': 'Bearer $token',
+      'Content-Type': 'application/json',
+    },
+    body: jsonEncode({
+      'titulo': titulo,
+      'contenido': contenido,
+      'fecha': DateTime.now().toIso8601String(),
+    }),
+  );
+  return response.statusCode == 201;
+}
+
+Future<bool> editarNota(int id, String titulo, String contenido) async {
+  final token = await storage.read(key: 'jwt_token');
+  final response = await http.put(
+    Uri.parse('$baseUrl/bitacora/$id'),
+    headers: {
+      'Authorization': 'Bearer $token',
+      'Content-Type': 'application/json',
+    },
+    body: jsonEncode({
+      'titulo': titulo,
+      'contenido': contenido,
+    }),
+  );
+  return response.statusCode == 200;
+}
+
+Future<bool> eliminarNota(int id) async {
+  final token = await storage.read(key: 'jwt_token');
+  final response = await http.delete(
+    Uri.parse('$baseUrl/bitacora/$id'),
+    headers: {'Authorization': 'Bearer $token'},
+  );
+  return response.statusCode == 200;
+}

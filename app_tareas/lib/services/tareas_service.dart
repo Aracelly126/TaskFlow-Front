@@ -43,3 +43,12 @@ Future<bool> crearTarea(
   );
   return response.statusCode == 201;
 }
+
+Future<bool> eliminarTareaService(int id) async {
+  final token = await storage.read(key: 'jwt_token');
+  final response = await http.delete(
+    Uri.parse('$baseUrl/tareas/$id'),
+    headers: {'Authorization': 'Bearer $token'},
+  );
+  return response.statusCode == 200;
+}
