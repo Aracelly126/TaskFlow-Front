@@ -2,30 +2,40 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'login_screen.dart';
 import 'bitacora_screen.dart';
+import 'home_screen.dart';
+import 'categorias_screen.dart';
 
 class SplashScreen extends StatelessWidget {
   const SplashScreen({super.key});
 
-  Future<bool> _estaLogueado() async {
+  Future<Widget> _pantallaInicial() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getString('token') != null;
+    final logueado = prefs.getBool('logueado') == true;
+    if (!logueado) return const LoginScreen();
+
+    final ultima = prefs.getString('ultima_pantalla') ?? 'bitacora';
+    switch (ultima) {
+      case 'tareas':
+        return const HomeScreen();
+      case 'categorias':
+        return const CategoriasScreen();
+      case 'bitacora':
+      default:
+        return const BitacoraScreen();
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<bool>(
-      future: _estaLogueado(),
+    return FutureBuilder<Widget>(
+      future: _pantallaInicial(),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
           return const Scaffold(
             body: Center(child: CircularProgressIndicator()),
           );
         }
-        if (snapshot.data == true) {
-          return const BitacoraScreen();
-        } else {
-          return const LoginScreen();
-        }
+        return snapshot.data!;
       },
     );
   }
