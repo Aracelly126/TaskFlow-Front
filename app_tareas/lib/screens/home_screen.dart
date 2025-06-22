@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../providers/tarea_provider.dart';
 import '../widgets/tarea_item.dart';
 import 'agregar_tarea_screen.dart';
+import 'categorias_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -20,7 +21,7 @@ class HomeScreen extends StatelessWidget {
           padding: EdgeInsets.zero,
           children: [
             const DrawerHeader(
-              decoration: BoxDecoration(color: Colors.blue),
+              decoration: BoxDecoration(color: Color.fromARGB(255, 229, 200, 247)),
               child: Text('Menú', style: TextStyle(color: Colors.white, fontSize: 24)),
             ),
             ListTile(
@@ -34,16 +35,18 @@ class HomeScreen extends StatelessWidget {
               leading: Icon(Icons.category),
               title: Text('Categorías'),
               onTap: () {
-                // Aquí puedes navegar a la pantalla de categorías si la tienes
-                // Navigator.push(context, MaterialPageRoute(builder: (_) => CategoriasScreen()));
-                Navigator.pop(context);
+                Navigator.pop(context); 
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const CategoriasScreen()),
+                );
               },
             ),
             ListTile(
               leading: Icon(Icons.logout),
               title: Text('Cerrar sesión'),
               onTap: () {
-                // Aquí puedes agregar la lógica para cerrar sesión
+               
                 Navigator.pop(context);
               },
             ),
@@ -58,8 +61,10 @@ class HomeScreen extends StatelessWidget {
             ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          Navigator.push(context,
-              MaterialPageRoute(builder: (_) => const AgregarTareaScreen()));
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const AgregarTareaScreen()),
+          );
         },
         child: const Icon(Icons.add),
       ),
