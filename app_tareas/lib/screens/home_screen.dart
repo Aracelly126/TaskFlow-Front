@@ -15,6 +15,41 @@ class HomeScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Mis Tareas'),
       ),
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            const DrawerHeader(
+              decoration: BoxDecoration(color: Colors.blue),
+              child: Text('Menú', style: TextStyle(color: Colors.white, fontSize: 24)),
+            ),
+            ListTile(
+              leading: Icon(Icons.home),
+              title: Text('Inicio'),
+              onTap: () {
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.category),
+              title: Text('Categorías'),
+              onTap: () {
+                // Aquí puedes navegar a la pantalla de categorías si la tienes
+                // Navigator.push(context, MaterialPageRoute(builder: (_) => CategoriasScreen()));
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.logout),
+              title: Text('Cerrar sesión'),
+              onTap: () {
+                // Aquí puedes agregar la lógica para cerrar sesión
+                Navigator.pop(context);
+              },
+            ),
+          ],
+        ),
+      ),
       body: tareas.isEmpty
           ? const Center(child: Text('No hay tareas aún.'))
           : ListView.builder(
