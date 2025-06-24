@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../models/tarea.dart';
 
-const String baseUrl = 'http://192.168.1.249:3000/api';
+const String baseUrl = 'http://localhost:3000/api';
 final storage = FlutterSecureStorage();
 
 Future<List<Tarea>> obtenerTareas() async {
@@ -49,6 +49,56 @@ Future<bool> eliminarTareaService(int id) async {
   final response = await http.delete(
     Uri.parse('$baseUrl/tareas/$id'),
     headers: {'Authorization': 'Bearer $token'},
+  );
+  return response.statusCode == 200;
+}
+
+Future<bool> completarTarea(int id, bool completada) async {
+  final token = await storage.read(key: 'jwt_token');
+  try {
+    final response = await http.patch(
+      Uri.parse('$baseUrl/tareas/$id/completar'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+    if (response.statusCode == 200) {
+      return true;
+    } else {
+      print('Error: ${response.statusCode} - ${response.body}');
+      return false;
+    }
+  } catch (e) {
+    print('Exception in completarTarea: $e');
+    return false;
+  }
+}
+
+Future<bool> actualizarTarea({
+  required int id,
+  required String titulo,
+  required String descripcion,
+  required int categoriaId,
+  required DateTime fecha,
+  String? hora,
+  required bool completada,
+}) async {
+  final token = await storage.read(key: 'jwt_token');
+  final response = await http.put(
+    Uri.parse('$baseUrl/tareas/$id'),
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $token',
+    },
+    body: jsonEncode({
+      'titulo': titulo,
+      'descripcion': descripcion,
+      'fecha': fecha.toIso8601String().split('T')[0],
+      'hora': hora ?? '',
+      'categoria_id': categoriaId,
+      'completada': completada,
+    }),
   );
   return response.statusCode == 200;
 }

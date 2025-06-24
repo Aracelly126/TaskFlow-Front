@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
-const String baseUrl = 'http://192.168.1.249:3000/api';
+const String baseUrl = 'http://localhost:3000/api';
 final storage = const FlutterSecureStorage();
 
 Future<bool> login(String email, String password) async {
