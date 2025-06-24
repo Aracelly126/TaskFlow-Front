@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import '../providers/tarea_provider.dart';
 import '../services/tareas_service.dart';
 import '../models/tarea.dart';
+import '../services/categorias_service.dart';
+import '../models/categoria.dart';
 
 class AgregarTareaScreen extends StatefulWidget {
   const AgregarTareaScreen({super.key});
@@ -17,6 +19,27 @@ class _AgregarTareaScreenState extends State<AgregarTareaScreen> {
   TimeOfDay? _horaSeleccionada;
   DateTime? _fechaSeleccionada;
 
+  List<Categoria> _categorias = [];
+  Categoria? _categoriaSeleccionada;
+  bool _cargandoCategorias = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _cargarCategorias();
+  }
+
+  Future<void> _cargarCategorias() async {
+    final cats = await obtenerCategorias();
+    setState(() {
+      _categorias = cats;
+      if (_categorias.isNotEmpty) {
+        _categoriaSeleccionada = _categorias.first;
+      }
+      _cargandoCategorias = false;
+    });
+  }
+
   @override
   void dispose() {
     _tituloController.dispose();
@@ -27,17 +50,17 @@ class _AgregarTareaScreenState extends State<AgregarTareaScreen> {
   void _guardarTarea() async {
     if (_tituloController.text.isEmpty ||
         _descripcionController.text.isEmpty ||
-        _fechaSeleccionada == null) return;
+        _fechaSeleccionada == null ||
+        _categoriaSeleccionada == null) return;
 
-    
     String? horaStr = _horaSeleccionada != null
-    ? '${_horaSeleccionada!.hour.toString().padLeft(2, '0')}:${_horaSeleccionada!.minute.toString().padLeft(2, '0')}:00'
-    : '';
+        ? '${_horaSeleccionada!.hour.toString().padLeft(2, '0')}:${_horaSeleccionada!.minute.toString().padLeft(2, '0')}:00'
+        : '';
 
     bool exito = await crearTarea(
       _tituloController.text,
       _descripcionController.text,
-      1, // Cambia por el id de la categoría seleccionada si lo tienes
+      _categoriaSeleccionada!.id,
       _fechaSeleccionada!,
       hora: horaStr,
     );
@@ -49,7 +72,7 @@ class _AgregarTareaScreenState extends State<AgregarTareaScreen> {
         descripcion: _descripcionController.text,
         fecha: _fechaSeleccionada!,
         completada: false,
-        categoriaId: 1,
+        categoriaId: _categoriaSeleccionada!.id,
       );
       Provider.of<TareaProvider>(context, listen: false).agregarTarea(nuevaTarea);
       Navigator.pop(context);
@@ -93,54 +116,72 @@ class _AgregarTareaScreenState extends State<AgregarTareaScreen> {
       appBar: AppBar(title: const Text('Agregar Tarea')),
       body: Padding(
         padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            TextField(
-              controller: _tituloController,
-              decoration: const InputDecoration(labelText: 'Título'),
-            ),
-            TextField(
-              controller: _descripcionController,
-              decoration: const InputDecoration(labelText: 'Descripción'),
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    _fechaSeleccionada == null
-                        ? 'Sin fecha seleccionada'
-                        : 'Fecha: ${_fechaSeleccionada!.toLocal().toString().split(' ')[0]}',
+        child: _cargandoCategorias
+            ? const Center(child: CircularProgressIndicator())
+            : Column(
+                children: [
+                  TextField(
+                    controller: _tituloController,
+                    decoration: const InputDecoration(labelText: 'Título'),
                   ),
-                ),
-                TextButton(
-                  onPressed: _seleccionarFecha,
-                  child: const Text('Seleccionar Fecha'),
-                ),
-              ],
-            ),
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    _horaSeleccionada == null
-                        ? 'Sin hora seleccionada'
-                        : 'Hora: ${_horaSeleccionada!.format(context)}',
+                  TextField(
+                    controller: _descripcionController,
+                    decoration: const InputDecoration(labelText: 'Descripción'),
                   ),
-                ),
-                TextButton(
-                  onPressed: _seleccionarHora,
-                  child: const Text('Seleccionar Hora'),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: _guardarTarea,
-              child: const Text('Guardar Tarea'),
-            ),
-          ],
-        ),
+                  const SizedBox(height: 16),
+                  DropdownButtonFormField<Categoria>(
+                    value: _categoriaSeleccionada,
+                    items: _categorias
+                        .map((cat) => DropdownMenuItem(
+                              value: cat,
+                              child: Text(cat.nombre),
+                            ))
+                        .toList(),
+                    onChanged: (cat) {
+                      setState(() {
+                        _categoriaSeleccionada = cat;
+                      });
+                    },
+                    decoration: const InputDecoration(labelText: 'Categoría'),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          _fechaSeleccionada == null
+                              ? 'Sin fecha seleccionada'
+                              : 'Fecha: ${_fechaSeleccionada!.toLocal().toString().split(' ')[0]}',
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: _seleccionarFecha,
+                        child: const Text('Seleccionar Fecha'),
+                      ),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          _horaSeleccionada == null
+                              ? 'Sin hora seleccionada'
+                              : 'Hora: ${_horaSeleccionada!.format(context)}',
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: _seleccionarHora,
+                        child: const Text('Seleccionar Hora'),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: _guardarTarea,
+                    child: const Text('Guardar Tarea'),
+                  ),
+                ],
+              ),
       ),
     );
   }
