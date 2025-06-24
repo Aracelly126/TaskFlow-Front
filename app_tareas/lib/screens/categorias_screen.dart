@@ -175,39 +175,44 @@ class _CategoriasScreenState extends State<CategoriasScreen> {
       drawer: const Menu(), // Aquí usas tu menú morado
       body: loading
           ? const Center(child: CircularProgressIndicator())
-          : ListView.builder(
-              itemCount: categorias.length,
-              itemBuilder: (ctx, i) {
-                final cat = categorias[i];
-                return Card(
-                  elevation: 4,
-                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  child: ListTile(
-                    leading: CircleAvatar(
-                      backgroundColor: _parseColor(cat.color),
-                      child: Icon(
-                        _parseIcon(cat.icono),
-                        color: Colors.white,
+          : RefreshIndicator(
+              onRefresh: () async {
+                await cargarCategorias();
+              },
+              child: ListView.builder(
+                itemCount: categorias.length,
+                itemBuilder: (ctx, i) {
+                  final cat = categorias[i];
+                  return Card(
+                    elevation: 4,
+                    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    child: ListTile(
+                      leading: CircleAvatar(
+                        backgroundColor: _parseColor(cat.color),
+                        child: Icon(
+                          _parseIcon(cat.icono),
+                          color: Colors.white,
+                        ),
+                      ),
+                      title: Text(cat.nombre),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.edit),
+                            onPressed: () => _mostrarDialogoCategoria(categoria: cat),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.delete),
+                            onPressed: () => _eliminarCategoria(cat.id),
+                          ),
+                        ],
                       ),
                     ),
-                    title: Text(cat.nombre),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        IconButton(
-                          icon: const Icon(Icons.edit),
-                          onPressed: () => _mostrarDialogoCategoria(categoria: cat),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.delete),
-                          onPressed: () => _eliminarCategoria(cat.id),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              },
+                  );
+                },
+              ),
             ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _mostrarDialogoCategoria(),
