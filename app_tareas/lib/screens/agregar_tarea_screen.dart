@@ -5,6 +5,7 @@ import '../services/tareas_service.dart';
 import '../models/tarea.dart';
 import '../services/categorias_service.dart';
 import '../models/categoria.dart';
+import '../services/notification_service.dart';
 
 class AgregarTareaScreen extends StatefulWidget {
   const AgregarTareaScreen({super.key});
@@ -74,6 +75,12 @@ class _AgregarTareaScreenState extends State<AgregarTareaScreen> {
         completada: false,
         categoriaId: _categoriaSeleccionada!.id,
       );
+      await programarNotificacionTarea(
+        id: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+        titulo: _tituloController.text,
+        descripcion: _descripcionController.text,
+        fechaHora: _fechaSeleccionada!,
+      );
       Provider.of<TareaProvider>(context, listen: false).agregarTarea(nuevaTarea);
       Navigator.pop(context);
     } else {
@@ -84,10 +91,11 @@ class _AgregarTareaScreenState extends State<AgregarTareaScreen> {
   }
 
   void _seleccionarFecha() async {
+    final hoy = DateTime.now();
     final fecha = await showDatePicker(
       context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime(2023),
+      initialDate: hoy,
+      firstDate: DateTime(hoy.year, hoy.month, hoy.day),
       lastDate: DateTime(2030),
     );
 
