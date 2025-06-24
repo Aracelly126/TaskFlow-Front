@@ -152,7 +152,9 @@ class _BitacoraScreenState extends State<BitacoraScreen> {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20),
                     ),
-                    color: const Color(0xFFF3F0FF),
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? Theme.of(context).colorScheme.surface
+                        : const Color(0xFFF3F0FF),
                     child: Padding(
                       padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
                       child: Column(
@@ -160,13 +162,14 @@ class _BitacoraScreenState extends State<BitacoraScreen> {
                         children: [
                           Text(
                             _mensajeDia,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 22,
                               fontWeight: FontWeight.bold,
-                              color: Color(0xFF6C63FF),
+                              color: Theme.of(context).brightness == Brightness.dark
+                                  ? Theme.of(context).colorScheme.primary
+                                  : const Color(0xFF6C63FF),
                             ),
                           ),
-                          
                           const SizedBox(height: 12),
                           Wrap(
                             alignment: WrapAlignment.center,
@@ -186,26 +189,26 @@ class _BitacoraScreenState extends State<BitacoraScreen> {
                                     SnackBar(
                                       content: Row(
                                         children: [
-                                          const Icon(Icons.favorite, color: Color(0xFF6C63FF)),
+                                          Icon(Icons.favorite, color: Theme.of(context).colorScheme.primary),
                                           const SizedBox(width: 10),
                                           Expanded(
                                             child: Text(
                                               emocion['mensaje'],
-                                              style: const TextStyle(
+                                              style: TextStyle(
                                                 fontSize: 16,
-                                                color: Color(0xFF6C63FF),
+                                                color: Theme.of(context).colorScheme.primary,
                                                 fontWeight: FontWeight.w500,
                                               ),
                                             ),
                                           ),
                                         ],
                                       ),
-                                      backgroundColor: Colors.white,
+                                      backgroundColor: Theme.of(context).colorScheme.surface,
                                       behavior: SnackBarBehavior.floating,
                                       margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(16),
-                                        side: const BorderSide(color: Color(0xFF6C63FF)),
+                                        side: BorderSide(color: Theme.of(context).colorScheme.primary),
                                       ),
                                       duration: const Duration(seconds: 3),
                                       elevation: 8,
@@ -220,32 +223,24 @@ class _BitacoraScreenState extends State<BitacoraScreen> {
                                       padding: const EdgeInsets.all(4),
                                       decoration: BoxDecoration(
                                         color: seleccionado
-                                            ? const Color(0xFF6C63FF).withOpacity(0.15)
+                                            ? Theme.of(context).colorScheme.primary.withOpacity(0.15)
                                             : Colors.transparent,
                                         shape: BoxShape.circle,
                                       ),
-                                      child: Container(
-                                        width: seleccionado ? tamanoAnimacion + 20 : tamanoAnimacion,
-                                        height: seleccionado ? tamanoAnimacion + 20 : tamanoAnimacion,
-                                        decoration: const BoxDecoration(
-                                          color: Colors.white,
-                                          shape: BoxShape.circle,
-                                        ),
-                                        child: ClipOval(
-                                          child: Image.asset(
-                                            emocion['gif'],
-                                            width: seleccionado ? tamanoAnimacion + 20 : tamanoAnimacion,
-                                            height: seleccionado ? tamanoAnimacion + 20 : tamanoAnimacion,
-                                            fit: BoxFit.cover,
-                                          ),
-                                        ),
+                                      child: Image.asset(
+                                        emocion['gif'],
+                                        width: tamanoAnimacion,
+                                        height: tamanoAnimacion,
                                       ),
                                     ),
+                                    const SizedBox(height: 4),
                                     Text(
                                       emocion['label'],
                                       style: TextStyle(
+                                        color: Theme.of(context).brightness == Brightness.dark
+                                            ? Theme.of(context).colorScheme.primary
+                                            : const Color(0xFF6C63FF),
                                         fontWeight: seleccionado ? FontWeight.bold : FontWeight.normal,
-                                        color: seleccionado ? const Color(0xFF6C63FF) : Colors.black,
                                       ),
                                     ),
                                   ],
@@ -262,9 +257,9 @@ class _BitacoraScreenState extends State<BitacoraScreen> {
                 // Bitácoras
                 Expanded(
                   child: Container(
-                    decoration: const BoxDecoration(
-                      color: Color(0xFFF8F8FF),
-                      borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.surface,
+                      borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
                     ),
                     child: _notas.isEmpty
                         ? const Center(child: Text('No hay notas aún.'))
