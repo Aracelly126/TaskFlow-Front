@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/tarea.dart';
+import '../services/tareas_service.dart';
 
 class TareaProvider with ChangeNotifier {
   List<Tarea> _tareas = [];
@@ -23,14 +24,16 @@ class TareaProvider with ChangeNotifier {
 
   // Método para cargar tareas desde la base de datos o servicio
   Future<void> fetchTareas() async {
-    // Aquí deberías obtener las tareas desde tu base de datos o API.
-    // Ejemplo simulado:
-    await Future.delayed(const Duration(milliseconds: 500)); // Simula carga
-    _tareas = [
-      // Ejemplo de tareas cargadas:
-      // Tarea(id: 1, titulo: 'Tarea 1', descripcion: 'Descripción 1'),
-      // Tarea(id: 2, titulo: 'Tarea 2', descripcion: 'Descripción 2'),
-    ];
+    final tareasBackend = await obtenerTareas();
+    _tareas = tareasBackend;
     notifyListeners();
   }
+
+  void actualizarTarea(Tarea tareaActualizada) {
+  final index = _tareas.indexWhere((t) => t.id == tareaActualizada.id);
+  if (index != -1) {
+    _tareas[index] = tareaActualizada;
+    notifyListeners();
+  }
+}
 }
