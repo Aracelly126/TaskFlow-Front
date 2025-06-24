@@ -5,6 +5,9 @@ import '../screens/bitacora_screen.dart';
 import '../screens/home_screen.dart';
 import '../screens/categorias_screen.dart';
 import '../screens/login_screen.dart';
+import '../screens/ajustes_screen.dart';
+import '../screens/tareas_completadas_screen.dart';
+import '../screens/calendario_screen.dart';
 
 class Menu extends StatelessWidget {
   const Menu({super.key});
@@ -81,6 +84,42 @@ class Menu extends StatelessWidget {
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(builder: (_) => const CategoriasScreen()),
+              );
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.calendar_month, color: Color(0xFF6C63FF)),
+            title: const Text('Calendario'),
+            onTap: () async {
+              Navigator.pop(context);
+              await _guardarUltimaPantalla('calendario');
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (_) => const CalendarioScreen()),
+              );
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.check_circle, color: Color(0xFF6C63FF)),
+            title: const Text('Tareas Completadas'),
+            onTap: () async {
+              Navigator.pop(context);
+              await _guardarUltimaPantalla('tareas_completadas');
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (_) => const TareasCompletadasScreen()),
+              );
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.settings, color: Color(0xFF6C63FF)),
+            title: const Text('Ajustes'),
+            onTap: () async {
+              Navigator.pop(context);
+              await _guardarUltimaPantalla('ajustes');
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (_) => const AjustesScreen()),
               );
             },
           ),
