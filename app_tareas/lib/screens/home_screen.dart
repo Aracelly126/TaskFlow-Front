@@ -7,6 +7,7 @@ import '../widgets/menu.dart';
 import '../models/categoria.dart';
 import '../services/categorias_service.dart';
 import '../models/tarea.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -73,9 +74,17 @@ class _HomeScreenState extends State<HomeScreen>
     }
   }
 
-  List<Tarea> _filtrarTareas(List<Tarea> tareas) {
+  Future<String> _obtenerOrdenTareas() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('ordenTareas') ?? 'fecha';
+  }
+
+  Future<List<Tarea>> _filtrarYOrdenarTareas(List<Tarea> tareas) async {
     DateTime hoy = DateTime.now();
     List<Tarea> filtradas = tareas;
+    if (_filtroEstado != 'completadas') {
+      filtradas = filtradas.where((t) => !t.completada).toList();
+    }
     if (_busqueda.isNotEmpty) {
       filtradas = filtradas
           .where(
@@ -125,6 +134,17 @@ class _HomeScreenState extends State<HomeScreen>
             .toList();
       }
     }
+    // Ordenar según preferencia
+    final orden = await _obtenerOrdenTareas();
+    if (orden == 'alfabetico') {
+      filtradas.sort((a, b) => a.titulo.toLowerCase().compareTo(b.titulo.toLowerCase()));
+    } else if (orden == 'prioridad') {
+      // Si tienes campo prioridad, ordénalo aquí. Por ahora, por id descendente como ejemplo
+      filtradas.sort((a, b) => b.id.compareTo(a.id));
+    } else {
+      // Por fecha (default)
+      filtradas.sort((a, b) => a.fecha.compareTo(b.fecha));
+    }
     return filtradas;
   }
 
@@ -141,290 +161,301 @@ class _HomeScreenState extends State<HomeScreen>
   @override
   Widget build(BuildContext context) {
     final tareas = Provider.of<TareaProvider>(context).tareas;
-    final tareasFiltradas = _filtrarTareas(tareas);
-    final theme = Theme.of(context);
-
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Mis Tareas'),
-        backgroundColor: const Color(0xFFF3F0FF),
-        actions: [
-          IconButton(
-            icon: Icon(
-              _mostrarFiltros ? Icons.filter_alt_off : Icons.filter_alt,
-              color: const Color(0xFF6C63FF),
-            ),
-            onPressed: () {
-              setState(() {
-                _mostrarFiltros = !_mostrarFiltros;
-                print('Filter toggled to: $_mostrarFiltros'); // Debug
-                _mostrarFiltros
-                    ? _animationController.forward()
-                    : _animationController.reverse();
-              });
-            },
-          ),
-        ],
-      ),
-      drawer: const Menu(),
-      body: _cargando
-          ? const Center(child: CircularProgressIndicator())
-          : Column(
-              children: [
-                // Search Bar
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  child: TextField(
-                    controller: _busquedaController,
-                    decoration: InputDecoration(
-                      hintText: 'Buscar tarea...',
-                      prefixIcon: const Icon(Icons.search, color: Color(0xFF6C63FF)),
-                      suffixIcon: _busqueda.isNotEmpty
-                          ? IconButton(
-                              icon: const Icon(Icons.clear, color: Color(0xFF6C63FF)),
-                              onPressed: () {
-                                setState(() {
-                                  _busqueda = '';
-                                  _busquedaController.clear();
-                                });
-                              },
-                            )
-                          : null,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(30),
-                        borderSide: BorderSide.none,
-                      ),
-                      filled: true,
-                      fillColor: Colors.grey[200],
-                      contentPadding: const EdgeInsets.symmetric(vertical: 12),
-                    ),
-                    onChanged: (value) {
-                      setState(() {
-                        _busqueda = value;
-                      });
-                    },
-                  ),
+    return FutureBuilder<List<Tarea>>(
+      future: _filtrarYOrdenarTareas(tareas),
+      builder: (context, snapshot) {
+        final tareasFiltradas = snapshot.data ?? [];
+        final theme = Theme.of(context);
+        return Scaffold(
+          appBar: AppBar(
+            title: const Text('Mis Tareas'),
+            backgroundColor: Theme.of(context).colorScheme.surface,
+            actions: [
+              IconButton(
+                icon: Icon(
+                  _mostrarFiltros ? Icons.filter_alt_off : Icons.filter_alt,
+                  color: const Color(0xFF6C63FF),
                 ),
-                // Filter Panel
-                SizeTransition(
-                  sizeFactor: _animation,
-                  axis: Axis.vertical,
-                  child: Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF3F0FF),
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFF6C63FF).withOpacity(0.08),
-                          blurRadius: 10,
-                          offset: const Offset(0, 2),
+                onPressed: () {
+                  setState(() {
+                    _mostrarFiltros = !_mostrarFiltros;
+                    print('Filter toggled to: $_mostrarFiltros'); // Debug
+                    _mostrarFiltros
+                        ? _animationController.forward()
+                        : _animationController.reverse();
+                  });
+                },
+              ),
+            ],
+          ),
+          drawer: const Menu(),
+          body: _cargando
+              ? const Center(child: CircularProgressIndicator())
+              : Column(
+                  children: [
+                    // Search Bar
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      child: TextField(
+                        controller: _busquedaController,
+                        decoration: InputDecoration(
+                          hintText: 'Buscar tarea...',
+                          prefixIcon: Icon(Icons.search, color: Theme.of(context).colorScheme.primary),
+                          suffixIcon: _busqueda.isNotEmpty
+                              ? IconButton(
+                                  icon: Icon(Icons.clear, color: Theme.of(context).colorScheme.primary),
+                                  onPressed: () {
+                                    setState(() {
+                                      _busqueda = '';
+                                      _busquedaController.clear();
+                                    });
+                                  },
+                                )
+                              : null,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(30),
+                            borderSide: BorderSide.none,
+                          ),
+                          filled: true,
+                          fillColor: Theme.of(context).brightness == Brightness.dark
+                              ? Colors.grey[900]
+                              : Colors.grey[200],
+                          contentPadding: const EdgeInsets.symmetric(vertical: 12),
                         ),
-                      ],
+                        onChanged: (value) {
+                          setState(() {
+                            _busqueda = value;
+                          });
+                        },
+                      ),
                     ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: ConstrainedBox(
-                        constraints: const BoxConstraints(maxHeight: 400),
-                        child: SingleChildScrollView(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Filtros',
-                                style: theme.textTheme.titleLarge?.copyWith(
-                                  color: const Color(0xFF6C63FF),
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const SizedBox(height: 16),
-                              // Category Filter
-                              Text(
-                                'Categoría',
-                                style: theme.textTheme.titleMedium?.copyWith(
-                                  color: const Color(0xFF6C63FF),
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              _categorias.isEmpty
-                                  ? const Text(
-                                      'No hay categorías disponibles',
-                                      style: TextStyle(color: Colors.grey),
-                                    )
-                                  : SingleChildScrollView(
-                                      scrollDirection: Axis.horizontal,
-                                      child: Row(
-                                        children: [
-                                          _buildCategoryChip(
-                                            label: 'Todas',
-                                            isSelected: _categoriaSeleccionada == null,
-                                            onTap: () {
-                                              setState(() => _categoriaSeleccionada = null);
-                                            },
+                    // Filter Panel
+                    SizeTransition(
+                      sizeFactor: _animation,
+                      axis: Axis.vertical,
+                      child: Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF3F0FF),
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0xFF6C63FF).withOpacity(0.08),
+                              blurRadius: 10,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(maxHeight: 400),
+                            child: SingleChildScrollView(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Filtros',
+                                    style: theme.textTheme.titleLarge?.copyWith(
+                                      color: const Color(0xFF6C63FF),
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  // Category Filter
+                                  Text(
+                                    'Categoría',
+                                    style: theme.textTheme.titleMedium?.copyWith(
+                                      color: const Color(0xFF6C63FF),
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  _categorias.isEmpty
+                                      ? const Text(
+                                          'No hay categorías disponibles',
+                                          style: TextStyle(color: Colors.grey),
+                                        )
+                                      : SingleChildScrollView(
+                                          scrollDirection: Axis.horizontal,
+                                          child: Row(
+                                            children: [
+                                              _buildCategoryChip(
+                                                label: 'Todas',
+                                                isSelected: _categoriaSeleccionada == null,
+                                                onTap: () {
+                                                  setState(() => _categoriaSeleccionada = null);
+                                                },
+                                              ),
+                                              ..._categorias.map(
+                                                (cat) => _buildCategoryChip(
+                                                  label: cat.nombre,
+                                                  isSelected: _categoriaSeleccionada?.id == cat.id,
+                                                  onTap: () {
+                                                    setState(() => _categoriaSeleccionada = cat);
+                                                  },
+                                                ),
+                                              ),
+                                            ],
                                           ),
-                                          ..._categorias.map(
-                                            (cat) => _buildCategoryChip(
-                                              label: cat.nombre,
-                                              isSelected: _categoriaSeleccionada?.id == cat.id,
-                                              onTap: () {
-                                                setState(() => _categoriaSeleccionada = cat);
-                                              },
-                                            ),
-                                          ),
-                                        ],
+                                        ),
+                                  const SizedBox(height: 16),
+                                  // State Filter
+                                  Text(
+                                    'Estado',
+                                    style: theme.textTheme.titleMedium?.copyWith(
+                                      color: const Color(0xFF6C63FF),
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(vertical: 4),
+                                    child: SegmentedButton<String>(
+                                      segments: const [
+                                        ButtonSegment(
+                                          value: 'todas',
+                                          label: Text('Todas'),
+                                          icon: Icon(Icons.all_inclusive),
+                                        ),
+                                        ButtonSegment(
+                                          value: 'completadas',
+                                          label: Text('Completadas'),
+                                          icon: Icon(Icons.check_circle),
+                                        ),
+                                        ButtonSegment(
+                                          value: 'no_completadas',
+                                          label: Text('Pendientes'),
+                                          icon: Icon(Icons.radio_button_unchecked),
+                                        ),
+                                      ],
+                                      selected: {_filtroEstado},
+                                      onSelectionChanged: (newSelection) {
+                                        setState(() {
+                                          _filtroEstado = newSelection.first;
+                                        });
+                                      },
+                                      style: SegmentedButton.styleFrom(
+                                        selectedBackgroundColor: const Color(0xFF6C63FF),
+                                        selectedForegroundColor: Colors.white,
+                                        backgroundColor: Colors.grey[200],
+                                        foregroundColor: Colors.black87,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(12),
+                                        ),
+                                        padding: const EdgeInsets.symmetric(vertical: 8),
                                       ),
                                     ),
-                              const SizedBox(height: 16),
-                              // State Filter
-                              Text(
-                                'Estado',
-                                style: theme.textTheme.titleMedium?.copyWith(
-                                  color: const Color(0xFF6C63FF),
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 4),
-                                child: SegmentedButton<String>(
-                                  segments: const [
-                                    ButtonSegment(
-                                      value: 'todas',
-                                      label: Text('Todas'),
-                                      icon: Icon(Icons.all_inclusive),
-                                    ),
-                                    ButtonSegment(
-                                      value: 'completadas',
-                                      label: Text('Completadas'),
-                                      icon: Icon(Icons.check_circle),
-                                    ),
-                                    ButtonSegment(
-                                      value: 'no_completadas',
-                                      label: Text('Pendientes'),
-                                      icon: Icon(Icons.radio_button_unchecked),
-                                    ),
-                                  ],
-                                  selected: {_filtroEstado},
-                                  onSelectionChanged: (newSelection) {
-                                    setState(() {
-                                      _filtroEstado = newSelection.first;
-                                    });
-                                  },
-                                  style: SegmentedButton.styleFrom(
-                                    selectedBackgroundColor: const Color(0xFF6C63FF),
-                                    selectedForegroundColor: Colors.white,
-                                    backgroundColor: Colors.grey[200],
-                                    foregroundColor: Colors.black87,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    padding: const EdgeInsets.symmetric(vertical: 8),
                                   ),
-                                ),
-                              ),
-                              const SizedBox(height: 16),
-                              // Date Filter
-                              Text(
-                                'Fecha',
-                                style: theme.textTheme.titleMedium?.copyWith(
-                                  color: const Color(0xFF6C63FF),
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 4),
-                                child: SegmentedButton<String>(
-                                  segments: const [
-                                    ButtonSegment(
-                                      value: 'todas',
-                                      label: Text('Todas'),
-                                      icon: Icon(Icons.calendar_month),
+                                  const SizedBox(height: 16),
+                                  // Date Filter
+                                  Text(
+                                    'Fecha',
+                                    style: theme.textTheme.titleMedium?.copyWith(
+                                      color: const Color(0xFF6C63FF),
+                                      fontWeight: FontWeight.bold,
                                     ),
-                                    ButtonSegment(
-                                      value: 'hoy',
-                                      label: Text('Hoy'),
-                                      icon: Icon(Icons.today),
-                                    ),
-                                    ButtonSegment(
-                                      value: 'proximas',
-                                      label: Text('Próximas'),
-                                      icon: Icon(Icons.event),
-                                    ),
-                                    ButtonSegment(
-                                      value: 'completadas_hoy',
-                                      label: Text('Completadas Hoy'),
-                                      icon: Icon(Icons.done_all),
-                                    ),
-                                  ],
-                                  selected: {_filtroFecha},
-                                  onSelectionChanged: (newSelection) {
-                                    setState(() {
-                                      _filtroFecha = newSelection.first;
-                                    });
-                                  },
-                                  style: SegmentedButton.styleFrom(
-                                    selectedBackgroundColor: const Color(0xFF6C63FF),
-                                    selectedForegroundColor: Colors.white,
-                                    backgroundColor: Colors.grey[200],
-                                    foregroundColor: Colors.black87,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    padding: const EdgeInsets.symmetric(vertical: 8),
                                   ),
-                                ),
-                              ),
-                              const SizedBox(height: 16),
-                              // Reset Filters Button
-                              Center(
-                                child: TextButton.icon(
-                                  onPressed: _resetFiltros,
-                                  icon: const Icon(Icons.refresh, color: Color(0xFF6C63FF)),
-                                  label: const Text(
-                                    'Limpiar Filtros',
-                                    style: TextStyle(color: Color(0xFF6C63FF)),
+                                  const SizedBox(height: 8),
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(vertical: 4),
+                                    child: SegmentedButton<String>(
+                                      segments: const [
+                                        ButtonSegment(
+                                          value: 'todas',
+                                          label: Text('Todas'),
+                                          icon: Icon(Icons.calendar_month),
+                                        ),
+                                        ButtonSegment(
+                                          value: 'hoy',
+                                          label: Text('Hoy'),
+                                          icon: Icon(Icons.today),
+                                        ),
+                                        ButtonSegment(
+                                          value: 'proximas',
+                                          label: Text('Próximas'),
+                                          icon: Icon(Icons.event),
+                                        ),
+                                        ButtonSegment(
+                                          value: 'completadas_hoy',
+                                          label: Text('Completadas Hoy'),
+                                          icon: Icon(Icons.done_all),
+                                        ),
+                                      ],
+                                      selected: {_filtroFecha},
+                                      onSelectionChanged: (newSelection) {
+                                        setState(() {
+                                          _filtroFecha = newSelection.first;
+                                        });
+                                      },
+                                      style: SegmentedButton.styleFrom(
+                                        selectedBackgroundColor: const Color(0xFF6C63FF),
+                                        selectedForegroundColor: Colors.white,
+                                        backgroundColor: Colors.grey[200],
+                                        foregroundColor: Colors.black87,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(12),
+                                        ),
+                                        padding: const EdgeInsets.symmetric(vertical: 8),
+                                      ),
+                                    ),
                                   ),
-                                ),
+                                  const SizedBox(height: 16),
+                                  // Reset Filters Button
+                                  Center(
+                                    child: TextButton.icon(
+                                      onPressed: _resetFiltros,
+                                      icon: const Icon(Icons.refresh, color: Color(0xFF6C63FF)),
+                                      label: const Text(
+                                        'Limpiar Filtros',
+                                        style: TextStyle(color: Color(0xFF6C63FF)),
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ],
+                            ),
                           ),
                         ),
                       ),
                     ),
-                  ),
-                ),
-                // Task List
-                Expanded(
-                  child: tareasFiltradas.isEmpty
-                      ? const Center(
-                          child: Text('No hay tareas para este filtro.'),
-                        )
-                      : ListView.builder(
-                          itemCount: tareasFiltradas.length,
-                          itemBuilder: (ctx, i) => Card(
-                            margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                            elevation: 4,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
+                    // Task List
+                    Expanded(
+                      child: tareasFiltradas.isEmpty
+                          ? const Center(
+                              child: Text('No hay tareas para este filtro.'),
+                            )
+                          : RefreshIndicator(
+                              onRefresh: () async {
+                                await _cargarTareas();
+                              },
+                              child: ListView.builder(
+                                itemCount: tareasFiltradas.length,
+                                itemBuilder: (ctx, i) => Card(
+                                  margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                  elevation: 4,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: TareaItem(tarea: tareasFiltradas[i]),
+                                ),
+                              ),
                             ),
-                            child: TareaItem(tarea: tareasFiltradas[i]),
-                          ),
-                        ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const AgregarTareaScreen()),
-          ).then((_) => _cargarTareas());
-        },
-        backgroundColor: const Color(0xFF6C63FF),
-        child: const Icon(Icons.add, color: Colors.white),
-      ),
+          floatingActionButton: FloatingActionButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const AgregarTareaScreen()),
+              ).then((_) => _cargarTareas());
+            },
+            backgroundColor: const Color(0xFF6C63FF),
+            child: const Icon(Icons.add, color: Colors.white),
+          ),
+        );
+      },
     );
   }
 
