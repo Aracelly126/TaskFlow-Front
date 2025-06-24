@@ -57,53 +57,113 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     return Scaffold(
-      appBar: AppBar(title: const Text('Registro')),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            TextField(
-              controller: _nombreController,
-              decoration: const InputDecoration(labelText: 'Nombre'),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _emailController,
-              decoration: const InputDecoration(labelText: 'Correo electrónico'),
-              keyboardType: TextInputType.emailAddress,
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _passwordController,
-              decoration: const InputDecoration(labelText: 'Contraseña'),
-              obscureText: true,
-            ),
-            const SizedBox(height: 24),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: _loading ? null : _register,
-                child: _loading
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Text('Registrarse'),
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: isDark
+                ? [theme.colorScheme.primary.withOpacity(0.4), theme.colorScheme.surface]
+                : [theme.colorScheme.primary.withOpacity(0.2), Colors.white],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+        child: Center(
+          child: SingleChildScrollView(
+            child: Card(
+              elevation: 8,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+              margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.person_add_alt_1, size: 64, color: theme.colorScheme.primary),
+                    const SizedBox(height: 16),
+                    Text('Registro',
+                        style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 24),
+                    TextField(
+                      controller: _nombreController,
+                      decoration: InputDecoration(
+                        labelText: 'Nombre',
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          borderSide: BorderSide(color: theme.colorScheme.primary, width: 2),
+                        ),
+                        prefixIcon: const Icon(Icons.person_outline),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: _emailController,
+                      decoration: InputDecoration(
+                        labelText: 'Correo electrónico',
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          borderSide: BorderSide(color: theme.colorScheme.primary, width: 2),
+                        ),
+                        prefixIcon: const Icon(Icons.email_outlined),
+                      ),
+                      keyboardType: TextInputType.emailAddress,
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: _passwordController,
+                      decoration: InputDecoration(
+                        labelText: 'Contraseña',
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          borderSide: BorderSide(color: theme.colorScheme.primary, width: 2),
+                        ),
+                        prefixIcon: const Icon(Icons.lock_outline),
+                      ),
+                      obscureText: true,
+                    ),
+                    const SizedBox(height: 24),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 48,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                          backgroundColor: theme.colorScheme.primary,
+                          foregroundColor: theme.colorScheme.onPrimary,
+                          textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        ),
+                        onPressed: _loading ? null : _register,
+                        child: _loading
+                            ? const SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                              )
+                            : const Text('Registrarse'),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(builder: (_) => const LoginScreen()),
+                        );
+                      },
+                      child: const Text('¿Ya tienes cuenta? Inicia sesión'),
+                    ),
+                  ],
+                ),
               ),
             ),
-            TextButton(
-              onPressed: () {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (_) => const LoginScreen()),
-                );
-              },
-              child: const Text('¿Ya tienes cuenta? Inicia sesión'),
-            ),
-          ],
+          ),
         ),
       ),
     );
