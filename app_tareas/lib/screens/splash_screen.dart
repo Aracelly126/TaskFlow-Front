@@ -4,6 +4,7 @@ import 'login_screen.dart';
 import 'bitacora_screen.dart';
 import 'home_screen.dart';
 import 'categorias_screen.dart';
+import 'ajustes_screen.dart';
 
 class SplashScreen extends StatelessWidget {
   const SplashScreen({super.key});
@@ -19,6 +20,8 @@ class SplashScreen extends StatelessWidget {
         return const HomeScreen();
       case 'categorias':
         return const CategoriasScreen();
+      case 'ajustes':
+        return const AjustesScreen();
       case 'bitacora':
       default:
         return const BitacoraScreen();
