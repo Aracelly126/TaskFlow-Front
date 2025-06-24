@@ -5,6 +5,7 @@ class Tarea {
   final DateTime fecha;
   final bool completada;
   final int categoriaId;
+  final DateTime? fechaCompletada;
 
   Tarea({
     required this.id,
@@ -13,6 +14,7 @@ class Tarea {
     required this.fecha,
     required this.completada,
     required this.categoriaId,
+    this.fechaCompletada,
   });
 
   factory Tarea.fromJson(Map<String, dynamic> json) => Tarea(
@@ -22,5 +24,8 @@ class Tarea {
         fecha: DateTime.parse(json['fecha']),
         completada: json['completada'] == 1 || json['completada'] == true,
         categoriaId: json['categoria_id'],
+        fechaCompletada: json['fecha_completada'] != null
+          ? DateTime.parse(json['fecha_completada'])
+          : null,
       );
 }
