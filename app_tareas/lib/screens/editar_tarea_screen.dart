@@ -77,10 +77,11 @@ class _EditarTareaScreenState extends State<EditarTareaScreen> {
   }
 
   void _seleccionarFecha() async {
+    final hoy = DateTime.now();
     final fecha = await showDatePicker(
       context: context,
-      initialDate: _fechaSeleccionada ?? DateTime.now(),
-      firstDate: DateTime(2023),
+      initialDate: _fechaSeleccionada ?? hoy,
+      firstDate: DateTime(hoy.year, hoy.month, hoy.day),
       lastDate: DateTime(2030),
     );
     if (fecha != null) {
