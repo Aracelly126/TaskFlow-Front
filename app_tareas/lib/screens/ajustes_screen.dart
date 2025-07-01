@@ -78,7 +78,7 @@ class _AjustesScreenState extends State<AjustesScreen> {
       initialTime: horaActual,
     );
     if (picked != null) {
-      final nuevaHora = picked.hour.toString().padLeft(2, '0') + ':' + picked.minute.toString().padLeft(2, '0');
+      final nuevaHora = '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
       setState(() => _horaNotificacion = nuevaHora);
       await _guardarPreferencia('horaNotificacion', nuevaHora);
       // Reprogramar notificación diaria

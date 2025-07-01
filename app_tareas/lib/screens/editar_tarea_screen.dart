@@ -55,7 +55,9 @@ class _EditarTareaScreenState extends State<EditarTareaScreen> {
     if (_tituloController.text.isEmpty ||
         _descripcionController.text.isEmpty ||
         _fechaSeleccionada == null ||
-        _categoriaSeleccionada == null) return;
+        _categoriaSeleccionada == null) {
+      return;
+    }
 
     final exito = await actualizarTarea(
       id: widget.tarea.id,

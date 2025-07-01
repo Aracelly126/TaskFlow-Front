@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import '../models/categoria.dart';
 import '../services/categorias_service.dart';
-import '../widgets/menu.dart'; 
+import '../widgets/menu.dart';
+import '../widgets/empty_state_widget.dart'; 
 
 final List<Color> coloresDisponibles = [
   Colors.blue, Colors.red, Colors.green, Colors.orange, Colors.purple, Colors.teal, Colors.pink, Colors.brown, Colors.yellow, Colors.grey
@@ -175,48 +176,55 @@ class _CategoriasScreenState extends State<CategoriasScreen> {
       drawer: const Menu(), // Aquí usas tu menú morado
       body: loading
           ? const Center(child: CircularProgressIndicator())
-          : RefreshIndicator(
-              onRefresh: () async {
-                await cargarCategorias();
-              },
-              child: ListView.builder(
-                itemCount: categorias.length,
-                itemBuilder: (ctx, i) {
-                  final cat = categorias[i];
-                  return Card(
-                    elevation: 4,
-                    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    child: ListTile(
-                      leading: CircleAvatar(
-                        backgroundColor: _parseColor(cat.color),
-                        child: Icon(
-                          _parseIcon(cat.icono),
-                          color: Colors.white,
+          : categorias.isEmpty
+              ? EmptyStateWidget(
+                  icon: Icons.category_outlined,
+                  title: 'No hay categorías',
+                  message: 'Aún no has creado ninguna categoría.\n¡Crea tu primera categoría para organizar mejor tus tareas!',
+                )
+              : RefreshIndicator(
+                  onRefresh: () async {
+                    await cargarCategorias();
+                  },
+                  child: ListView.builder(
+                    itemCount: categorias.length,
+                    itemBuilder: (ctx, i) {
+                      final cat = categorias[i];
+                      return Card(
+                        elevation: 4,
+                        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        child: ListTile(
+                          leading: CircleAvatar(
+                            backgroundColor: _parseColor(cat.color),
+                            child: Icon(
+                              _parseIcon(cat.icono),
+                              color: Colors.white,
+                            ),
+                          ),
+                          title: Text(cat.nombre),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                icon: const Icon(Icons.edit),
+                                onPressed: () => _mostrarDialogoCategoria(categoria: cat),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.delete),
+                                onPressed: () => _eliminarCategoria(cat.id),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                      title: Text(cat.nombre),
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          IconButton(
-                            icon: const Icon(Icons.edit),
-                            onPressed: () => _mostrarDialogoCategoria(categoria: cat),
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.delete),
-                            onPressed: () => _eliminarCategoria(cat.id),
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
+                      );
+                    },
+                  ),
+                ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _mostrarDialogoCategoria(),
-        child: const Icon(Icons.add),
+        backgroundColor: const Color(0xFF6C63FF),
+        child: const Icon(Icons.add, color: Colors.white),
       ),
     );
   }

@@ -29,3 +29,104 @@ Future<bool> register(String nombre, String email, String password) async {
   );
   return response.statusCode == 201;
 }
+
+// Función para solicitar recuperación de contraseña
+Future<Map<String, dynamic>?> solicitarRecuperacionPassword(String email) async {
+  try {
+    final response = await http.post(
+      Uri.parse('$baseUrl/auth/forgot-password'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'email': email}),
+    );
+    
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return {
+        'success': true,
+        'message': data['message'],
+        'userId': data['userId'], // Puede ser null si el email no existe
+      };
+    } else {
+      final error = jsonDecode(response.body);
+      return {
+        'success': false,
+        'message': error['error'] ?? 'Error desconocido',
+      };
+    }
+  } catch (e) {
+    return {
+      'success': false,
+      'message': 'Error de conexión: $e',
+    };
+  }
+}
+
+// Función para validar código de verificación
+Future<Map<String, dynamic>?> validarCodigoVerificacion(String codigo, int userId) async {
+  try {
+    final response = await http.post(
+      Uri.parse('$baseUrl/auth/validate-reset-token'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'token': codigo,
+        'userId': userId,
+      }),
+    );
+    
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return {
+        'success': true,
+        'valid': data['valid'],
+        'message': data['message'],
+        'expiresAt': data['expiresAt'],
+      };
+    } else {
+      final error = jsonDecode(response.body);
+      return {
+        'success': false,
+        'message': error['error'] ?? 'Código inválido',
+      };
+    }
+  } catch (e) {
+    return {
+      'success': false,
+      'message': 'Error de conexión: $e',
+    };
+  }
+}
+
+// Función para restablecer contraseña con código
+Future<Map<String, dynamic>?> restablecerPasswordConCodigo(String codigo, int userId, String nuevaPassword) async {
+  try {
+    final response = await http.post(
+      Uri.parse('$baseUrl/auth/reset-password'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'token': codigo,
+        'userId': userId,
+        'newPassword': nuevaPassword,
+      }),
+    );
+    
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return {
+        'success': true,
+        'message': data['message'],
+        'emailSent': data['emailSent'],
+      };
+    } else {
+      final error = jsonDecode(response.body);
+      return {
+        'success': false,
+        'message': error['error'] ?? 'Error al restablecer contraseña',
+      };
+    }
+  } catch (e) {
+    return {
+      'success': false,
+      'message': 'Error de conexión: $e',
+    };
+  }
+}

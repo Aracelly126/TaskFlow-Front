@@ -52,7 +52,9 @@ class _AgregarTareaScreenState extends State<AgregarTareaScreen> {
     if (_tituloController.text.isEmpty ||
         _descripcionController.text.isEmpty ||
         _fechaSeleccionada == null ||
-        _categoriaSeleccionada == null) return;
+        _categoriaSeleccionada == null) {
+      return;
+    }
 
     String? horaStr = _horaSeleccionada != null
         ? '${_horaSeleccionada!.hour.toString().padLeft(2, '0')}:${_horaSeleccionada!.minute.toString().padLeft(2, '0')}:00'

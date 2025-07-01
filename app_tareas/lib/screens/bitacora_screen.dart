@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../services/bitacora_service.dart';
 import '../widgets/bitacora_item.dart';
 import '../widgets/menu.dart';
+import '../widgets/empty_state_widget.dart';
 
 class BitacoraScreen extends StatefulWidget {
   const BitacoraScreen({super.key});
@@ -262,7 +263,11 @@ class _BitacoraScreenState extends State<BitacoraScreen> {
                       borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
                     ),
                     child: _notas.isEmpty
-                        ? const Center(child: Text('No hay notas aún.'))
+                        ? EmptyStateWidget(
+                            icon: Icons.book_outlined,
+                            title: 'Tu bitácora está vacía',
+                            message: 'Comienza a escribir tus pensamientos y reflexiones.\n¡Tu primera nota te está esperando!',
+                          )
                         : ListView.builder(
                             padding: const EdgeInsets.symmetric(vertical: 8),
                             itemCount: _notas.length,
@@ -284,7 +289,8 @@ class _BitacoraScreenState extends State<BitacoraScreen> {
             ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _mostrarFormulario(),
-        child: const Icon(Icons.add),
+        backgroundColor: const Color(0xFF6C63FF),
+        child: const Icon(Icons.add, color: Colors.white),
       ),
     );
   }

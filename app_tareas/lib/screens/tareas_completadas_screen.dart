@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import '../services/tareas_service.dart';
 import '../widgets/tarea_item.dart';
 import '../models/tarea.dart';
-import 'package:intl/intl.dart';
 import '../widgets/menu.dart';
+import '../widgets/empty_state_widget.dart';
 
 class TareasCompletadasScreen extends StatefulWidget {
   const TareasCompletadasScreen({super.key});
@@ -105,7 +105,13 @@ class _TareasCompletadasScreenState extends State<TareasCompletadasScreen> {
       body: cargando
           ? const Center(child: CircularProgressIndicator())
           : tareasFiltradas.isEmpty
-              ? const Center(child: Text('No hay tareas completadas para este día.'))
+              ? EmptyStateWidget(
+                  icon: Icons.task_alt_outlined,
+                  title: 'No hay tareas completadas',
+                  message: filtroFecha != null
+                      ? 'No completaste ninguna tarea el ${filtroFecha!.day}/${filtroFecha!.month}/${filtroFecha!.year}.\n¡Sigue trabajando en tus objetivos!'
+                      : 'Aún no has completado ninguna tarea.\n¡Empieza a completar tareas para verlas aquí!',
+                )
               : RefreshIndicator(
                   onRefresh: () async {
                     await cargarTareas();

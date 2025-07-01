@@ -4,6 +4,7 @@ import '../services/tareas_service.dart';
 import '../models/tarea.dart';
 import '../widgets/tarea_item.dart';
 import '../widgets/menu.dart';
+import '../widgets/empty_state_widget.dart';
 
 class CalendarioScreen extends StatefulWidget {
   const CalendarioScreen({super.key});
@@ -119,7 +120,11 @@ class _CalendarioScreenState extends State<CalendarioScreen> {
                 const SizedBox(height: 8),
                 Expanded(
                   child: tareasDelDia.isEmpty
-                      ? const Center(child: Text('No hay tareas para este día.'))
+                      ? EmptyStateWidget(
+                          icon: Icons.event_note_outlined,
+                          title: 'Sin tareas para este día',
+                          message: 'No tienes tareas programadas para el ${_selectedDay.day}/${_selectedDay.month}/${_selectedDay.year}.\n¡Disfruta tu día libre!',
+                        )
                       : ListView.builder(
                           itemCount: tareasDelDia.length,
                           itemBuilder: (ctx, i) => TareaItem(tarea: tareasDelDia[i]),

@@ -8,6 +8,7 @@ import '../models/categoria.dart';
 import '../services/categorias_service.dart';
 import '../models/tarea.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../widgets/empty_state_widget.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -422,8 +423,18 @@ class _HomeScreenState extends State<HomeScreen>
                     // Task List
                     Expanded(
                       child: tareasFiltradas.isEmpty
-                          ? const Center(
-                              child: Text('No hay tareas para este filtro.'),
+                          ? EmptyStateWidget(
+                              icon: Icons.task_outlined,
+                              title: _busqueda.isNotEmpty
+                                  ? 'Sin resultados'
+                                  : _categoriaSeleccionada != null || _filtroFecha != 'todas'
+                                      ? 'No hay tareas para este filtro'
+                                      : 'No tienes tareas pendientes',
+                              message: _busqueda.isNotEmpty
+                                  ? 'No encontramos tareas que coincidan con "$_busqueda".\nIntenta con otros términos de búsqueda.'
+                                  : _categoriaSeleccionada != null || _filtroFecha != 'todas'
+                                      ? 'Prueba ajustando los filtros para ver más tareas.\n¡O crea una nueva tarea!'
+                                      : '¡Perfecto! No tienes tareas pendientes.\n¿Qué tal si agregas una nueva tarea?',
                             )
                           : RefreshIndicator(
                               onRefresh: () async {
