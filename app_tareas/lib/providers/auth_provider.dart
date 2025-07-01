@@ -9,30 +9,36 @@ class AuthProvider with ChangeNotifier {
   Usuario? get usuario => _usuario;
   String? get token => _token;
 
- void setUsuario(Usuario usuario, String token) async {
-  _usuario = usuario;
-  _token = token;
+  void setUsuario(Usuario usuario, String token) async {
+    _usuario = usuario;
+    _token = token;
 
-  final prefs = await SharedPreferences.getInstance();
-  await prefs.setString('token', token);
-  notifyListeners();
-}
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('token', token);
+    await prefs.setString('nombre', usuario.nombre);
+    await prefs.setString('email', usuario.email);
+    await prefs.setInt('id', usuario.id);
 
- void logout() async {
-  _usuario = null;
-  _token = null;
-  
-  final prefs = await SharedPreferences.getInstance();
-  await prefs.remove('token');
-  notifyListeners();
-}
-Future<void> cargarToken() async {
-  final prefs = await SharedPreferences.getInstance();
-  final tokenGuardado = prefs.getString('token');
-  if (tokenGuardado != null) {
-    _token = tokenGuardado;
-   
     notifyListeners();
   }
-}
+
+  // Método usado al arrancar la app desde SharedPreferences
+  void setUsuarioManual(int id, String nombre, String email, String token) {
+    _usuario = Usuario(id: id, nombre: nombre, email: email);
+    _token = token;
+    notifyListeners();
+  }
+
+  Future<void> cerrarSesion() async {
+    _usuario = null;
+    _token = null;
+
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('token');
+    await prefs.remove('nombre');
+    await prefs.remove('email');
+    await prefs.remove('id');
+
+    notifyListeners();
+  }
 }

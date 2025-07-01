@@ -1,8 +1,9 @@
+import 'package:app_tareas/models/usuario.dart';
+import 'package:app_tareas/providers/auth_provider.dart';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:provider/provider.dart';
 import '../services/auth_service.dart';
 import 'register_screen.dart';
-import 'bitacora_screen.dart';
 import 'home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -26,6 +27,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> _login() async {
     setState(() => _loading = true);
+
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
 
@@ -37,23 +39,37 @@ class _LoginScreenState extends State<LoginScreen> {
       return;
     }
 
-    final exito = await login(email, password);
+    try {
+      final resultadoLogin = await login(email, password); // viene de auth_service.dart
 
-    setState(() => _loading = false);
+      if (resultadoLogin != null && resultadoLogin['user'] != null) {
+        final userData = resultadoLogin['user'];
+        final token = resultadoLogin['token'];
 
-    if (exito) {
-      // Guarda el flag de sesión en SharedPreferences
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool('logueado', true);
+        final usuario = Usuario(
+          id: userData['id'],
+          nombre: userData['nombre'],
+          email: userData['email'],
+        );
 
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const HomeScreen()),
-      );
-    } else {
+        final authProvider = Provider.of<AuthProvider>(context, listen: false);
+        authProvider.setUsuario(usuario, token);
+
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const HomeScreen()),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Credenciales incorrectas')),
+        );
+      }
+    } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Credenciales incorrectas')),
+        SnackBar(content: Text('Error de inicio de sesión: $e')),
       );
+    } finally {
+      setState(() => _loading = false);
     }
   }
 
