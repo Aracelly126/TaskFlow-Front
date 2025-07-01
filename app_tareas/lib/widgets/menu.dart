@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:provider/provider.dart';
 import '../screens/bitacora_screen.dart';
 import '../screens/home_screen.dart';
 import '../screens/categorias_screen.dart';
@@ -8,6 +7,8 @@ import '../screens/login_screen.dart';
 import '../screens/ajustes_screen.dart';
 import '../screens/tareas_completadas_screen.dart';
 import '../screens/calendario_screen.dart';
+import '../providers/auth_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Menu extends StatelessWidget {
   const Menu({super.key});
@@ -17,38 +18,52 @@ class Menu extends StatelessWidget {
     await prefs.setString('ultima_pantalla', pantalla);
   }
 
-  Future<void> _cerrarSesion(BuildContext context) async {
-    final storage = FlutterSecureStorage();
-    await storage.delete(key: 'jwt_token');
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('logueado');
-    await prefs.remove('ultima_pantalla');
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (_) => const LoginScreen()),
-      (route) => false,
-    );
+  String _obtenerSaludo() {
+    final hora = DateTime.now().hour;
+    if (hora >= 5 && hora < 12) {
+      return '¡Buenos días!';
+    } else if (hora >= 12 && hora < 18) {
+      return '¡Buenas tardes!';
+    } else {
+      return '¡Buenas noches!';
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final auth = Provider.of<AuthProvider>(context);
+    final nombre = auth.usuario?.nombre ?? 'Usuario';
+    final correo = auth.usuario?.email ?? 'correo@ejemplo.com';
+
     return Drawer(
       child: ListView(
         padding: EdgeInsets.zero,
         children: [
-          const DrawerHeader(
-            decoration: BoxDecoration(
-              color:  Color(0xFF6C63FF),
-            ),
-            child: Center(
-              child: Text(
-                'Menú',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 2,
+          DrawerHeader(
+            decoration: const BoxDecoration(color: Color(0xFF6C63FF)),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  _obtenerSaludo(),
+                  style: const TextStyle(color: Colors.white70, fontSize: 16),
                 ),
-              ),
+                const SizedBox(height: 5),
+                Text(
+                  nombre,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  correo,
+                  style: const TextStyle(color: Colors.white70, fontSize: 14),
+                ),
+              ],
             ),
           ),
           ListTile(
@@ -64,7 +79,7 @@ class Menu extends StatelessWidget {
             },
           ),
           ListTile(
-            leading: const Icon(Icons.task, color:  Color(0xFF6C63FF)),
+            leading: const Icon(Icons.task, color: Color(0xFF6C63FF)),
             title: const Text('Tareas'),
             onTap: () async {
               Navigator.pop(context);
@@ -107,7 +122,9 @@ class Menu extends StatelessWidget {
               await _guardarUltimaPantalla('tareas_completadas');
               Navigator.pushReplacement(
                 context,
-                MaterialPageRoute(builder: (_) => const TareasCompletadasScreen()),
+                MaterialPageRoute(
+                  builder: (_) => const TareasCompletadasScreen(),
+                ),
               );
             },
           ),
@@ -124,11 +141,18 @@ class Menu extends StatelessWidget {
             },
           ),
           ListTile(
-            leading: const Icon(Icons.logout, color:  Color(0xFF6C63FF)),
+            leading: const Icon(Icons.logout, color: Color(0xFF6C63FF)),
             title: const Text('Cerrar sesión'),
             onTap: () async {
               Navigator.pop(context);
-              await _cerrarSesion(context);
+              await Provider.of<AuthProvider>(
+                context,
+                listen: false,
+              ).cerrarSesion();
+              Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(builder: (_) => const LoginScreen()),
+                (route) => false,
+              );
             },
           ),
         ],
